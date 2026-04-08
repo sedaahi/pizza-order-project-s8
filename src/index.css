@@ -1,4 +1,72 @@
-:root {
+@import url("https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Quattrocento:wght@400;700&family=Roboto+Condensed:wght@400;700&family=Satisfy&display=swap");
+@import "tailwindcss";
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    font-family: "Barlow", sans-serif;
+    background-color: #faf7f2;
+    color: #292929;
+  }
+
+  a {
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  textarea,
+  select {
+    font: inherit;
+  }
+}
+
+@layer utilities {
+  .font-barlow {
+    font-family: "Barlow", sans-serif;
+  }
+
+  .font-quattrocento {
+    font-family: "Quattrocento", serif;
+  }
+
+  .font-roboto-condensed {
+    font-family: "Roboto Condensed", sans-serif;
+  }
+
+  .font-satisfy {
+    font-family: "Satisfy", cursive;
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -49,4 +117,4 @@ button:hover {
 button:focus,
 button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
-}
+} */
