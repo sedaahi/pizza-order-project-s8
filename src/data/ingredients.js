@@ -14,3 +14,12 @@ export const ingredientsList = [
   "Kabak",
   "Peynir"
 ];
+
+export const initialOrderForm = {
+  name: "",
+  size: "M",
+  dough: "",
+  ingredients: [],
+  note: "",
+  quantity: 1,
+};

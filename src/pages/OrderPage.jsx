@@ -2,6 +2,7 @@ import Header from "../components/Header";
 import Footer from "../components/Footer";
 import OrderForm from "../components/OrderForm";
 import pizzaImage from "../../images/iteration-2-images/pictures/form-banner.png";
+import { useState } from "react";
 
 export default function OrderPage({
   setOrderData,
@@ -9,6 +10,8 @@ export default function OrderPage({
   orderForm,
   setOrderForm,
 }) {
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
   return (
     <div className="min-h-screen bg-[#FAF7F2] text-[#292929]">
       <Header />

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import { ingredientsList } from "../data/ingredients";
 import { validateForm, calculateTotalPrice } from "../utils/helpers";
 import { postOrder } from "../services/api";
@@ -12,6 +13,7 @@ export default function OrderForm({
 }) {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [ingredientError, setIngredientError] = useState("");
 
@@ -28,6 +30,8 @@ export default function OrderForm({
   };
 
   const handleIngredientChange = (ingredient) => {
+    if (isLocked) return;
+
     const isSelected = orderForm.ingredients.includes(ingredient);
 
     if (isSelected) {
@@ -35,7 +39,6 @@ export default function OrderForm({
         ...prev,
         ingredients: prev.ingredients.filter((item) => item !== ingredient),
       }));
-
       setIngredientError("");
       return;
     }
@@ -54,7 +57,7 @@ export default function OrderForm({
   };
 
   const decreaseQuantity = () => {
-    if (orderForm.quantity <= 1) return;
+    if (isLocked || orderForm.quantity <= 1) return;
 
     setOrderForm((prev) => ({
       ...prev,
@@ -63,6 +66,8 @@ export default function OrderForm({
   };
 
   const increaseQuantity = () => {
+    if (isLocked) return;
+
     setOrderForm((prev) => ({
       ...prev,
       quantity: prev.quantity + 1,
@@ -71,6 +76,8 @@ export default function OrderForm({
 
   const handleSubmit = async (event) => {
     event.preventDefault();
+
+    if (isSubmitting || isLocked) return;
 
     const currentErrors = validateForm(orderForm);
     if (Object.keys(currentErrors).length > 0) return;
@@ -87,6 +94,7 @@ export default function OrderForm({
 
     try {
       setIsSubmitting(true);
+      setIsLocked(true);
       setSubmitError("");
 
       const responseData = await postOrder(payload);
@@ -97,14 +105,29 @@ export default function OrderForm({
       setOrderData(payload);
       setOrderResponse(responseData);
 
-      navigate("/success");
+      setIsSubmitting(false);
+
+      toast.success("Siparişiniz alındı!", {
+        autoClose: 1200,
+        pauseOnHover: false,
+        closeOnClick: true,
+        onClose: () => navigate("/success"),
+      });
     } catch (error) {
       setSubmitError(
         "Sipariş gönderilemedi. Lütfen internet bağlantını kontrol et."
       );
-      console.error(error);
-    } finally {
+
       setIsSubmitting(false);
+
+      toast.error("Sipariş gönderilemedi.", {
+        autoClose: 1800,
+        pauseOnHover: false,
+        closeOnClick: true,
+        onClose: () => setIsLocked(false),
+      });
+
+      console.error(error);
     }
   };
 
@@ -118,6 +141,8 @@ export default function OrderForm({
     orderForm.ingredients,
     orderForm.quantity
   ).toFixed(2);
+
+  const isButtonDisabled = !isValid || isSubmitting || isLocked;
 
   return (
     <form className="w-full" onSubmit={handleSubmit}>
@@ -136,7 +161,7 @@ export default function OrderForm({
                     orderForm.size === size
                       ? "border-[#FDC913] bg-[#FDC913]"
                       : "border-[#E5E5E5] bg-[#FAF7F2]"
-                  }`}
+                  } ${isLocked ? "pointer-events-none opacity-70" : ""}`}
                 >
                   <input
                     type="radio"
@@ -145,6 +170,7 @@ export default function OrderForm({
                     checked={orderForm.size === size}
                     onChange={handleChange}
                     className="hidden"
+                    disabled={isLocked}
                   />
                   {size}
                 </label>
@@ -169,7 +195,8 @@ export default function OrderForm({
               name="dough"
               value={orderForm.dough}
               onChange={handleChange}
-              className="h-14 w-full rounded-md border border-[#D9D9D9] bg-[#FAF7F2] px-4 text-[18px] outline-none focus:border-[#CE2829]"
+              disabled={isLocked}
+              className="h-14 w-full rounded-md border border-[#D9D9D9] bg-[#FAF7F2] px-4 text-[18px] outline-none focus:border-[#CE2829] disabled:cursor-not-allowed disabled:opacity-70"
             >
               <option value="">--Hamur Kalınlığı Seç--</option>
               <option value="İnce Hamur">İnce Hamur</option>
@@ -199,13 +226,16 @@ export default function OrderForm({
               return (
                 <label
                   key={ingredient}
-                  className="flex min-h-[45px] cursor-pointer items-center gap-3 text-[16px] font-semibold text-[#5F5F5F]"
+                  className={`flex min-h-[45px] cursor-pointer items-center gap-3 text-[16px] font-semibold text-[#5F5F5F] ${
+                    isLocked ? "pointer-events-none opacity-70" : ""
+                  }`}
                 >
                   <input
                     type="checkbox"
                     checked={checked}
                     onChange={() => handleIngredientChange(ingredient)}
                     className="hidden"
+                    disabled={isLocked}
                   />
 
                   <span
@@ -244,7 +274,8 @@ export default function OrderForm({
             value={orderForm.name}
             onChange={handleChange}
             placeholder="Adınızı girin"
-            className="w-full rounded-md bg-[#FAF7F2] px-4 py-3 outline-none"
+            disabled={isLocked}
+            className="w-full rounded-md bg-[#FAF7F2] px-4 py-3 outline-none disabled:cursor-not-allowed disabled:opacity-70"
           />
 
           <p className="mt-2 min-h-[20px] text-sm text-[#CE2829]">
@@ -266,7 +297,8 @@ export default function OrderForm({
             value={orderForm.note}
             onChange={handleChange}
             placeholder="Siparişine eklemek istediğin bir not var mı?"
-            className="h-[56px] w-full rounded-[4px] bg-[#FAF7F2] px-4 py-[16px] text-[16px] font-light text-[#292929] outline-none placeholder:text-[16px] placeholder:text-[#5F5F5F]"
+            disabled={isLocked}
+            className="h-[56px] w-full rounded-[4px] bg-[#FAF7F2] px-4 py-[16px] text-[16px] font-light text-[#292929] outline-none placeholder:text-[16px] placeholder:text-[#5F5F5F] disabled:cursor-not-allowed disabled:opacity-70"
           />
         </div>
 
@@ -275,7 +307,8 @@ export default function OrderForm({
             <button
               type="button"
               onClick={decreaseQuantity}
-              className="bg-[#FDC913] px-5 py-3 text-lg font-semibold"
+              disabled={isLocked}
+              className="bg-[#FDC913] px-5 py-3 text-lg font-semibold disabled:cursor-not-allowed disabled:opacity-70"
             >
               -
             </button>
@@ -287,7 +320,8 @@ export default function OrderForm({
             <button
               type="button"
               onClick={increaseQuantity}
-              className="bg-[#FDC913] px-5 py-3 text-lg font-semibold"
+              disabled={isLocked}
+              className="bg-[#FDC913] px-5 py-3 text-lg font-semibold disabled:cursor-not-allowed disabled:opacity-70"
             >
               +
             </button>
@@ -314,14 +348,14 @@ export default function OrderForm({
 
             <button
               type="submit"
-              disabled={!isValid || isSubmitting}
+              disabled={isButtonDisabled}
               className={`block h-[62px] w-full text-[18px] font-semibold text-[#292929] ${
-                !isValid || isSubmitting
+                isButtonDisabled
                   ? "cursor-not-allowed bg-[#F3E7A0]"
                   : "bg-[#FDC913]"
               }`}
             >
-              {isSubmitting ? "Gönderiliyor..." : "SİPARİŞ VER"}
+              {isSubmitting || isLocked ? "Gönderiliyor..." : "SİPARİŞ VER"}
             </button>
           </div>
         </div>
