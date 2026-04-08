@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@100;300;400;700&display=swap');
 @import url("https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Quattrocento:wght@400;700&family=Roboto+Condensed:wght@400;700&family=Satisfy&display=swap");
 @import "tailwindcss";
 
@@ -42,29 +43,6 @@
     font-family: "Satisfy", cursive;
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 /* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
