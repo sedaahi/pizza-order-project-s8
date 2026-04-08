@@ -69,7 +69,7 @@ export default function Footer() {
       </div>
 
       <div className="w-full border-t border-white/10 ">
-        <div className="mx-auto flex max-w-[1440px] items-center justify-between  py-9 md:px-20 md:px-40 ">
+        <div className="mx-auto flex max-w-[1440px] items-center justify-between px-5 py-9 md:px-20 md:px-40 ">
           <p className="text-[15px] text-[#FAF7F2]">© 2023 Teknolojik Yemekler.</p>
 
           <svg
