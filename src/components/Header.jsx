@@ -7,7 +7,7 @@ export default function Header() {
         <img
           src={logo}
           alt="Teknolojik Yemekler"
-          className="w-[220px] md:w-[280px]"
+          className="w-[260px] md:w-[360px]"
         />
       </div>
     </header>

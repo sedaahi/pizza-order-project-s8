@@ -13,6 +13,7 @@ export default function OrderForm({
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [ingredientError, setIngredientError] = useState("");
 
   const errors = useMemo(() => validateForm(orderForm), [orderForm]);
   const isValid = Object.keys(errors).length === 0;
@@ -34,10 +35,13 @@ export default function OrderForm({
         ...prev,
         ingredients: prev.ingredients.filter((item) => item !== ingredient),
       }));
+
+      setIngredientError("");
       return;
     }
 
     if (orderForm.ingredients.length >= 10) {
+      setIngredientError("En fazla 10 malzeme seçebilirsiniz.");
       return;
     }
 
@@ -45,6 +49,8 @@ export default function OrderForm({
       ...prev,
       ingredients: [...prev.ingredients, ingredient],
     }));
+
+    setIngredientError("");
   };
 
   const decreaseQuantity = () => {
@@ -94,7 +100,7 @@ export default function OrderForm({
       navigate("/success");
     } catch (error) {
       setSubmitError(
-        "Sipariş gönderilemedi. Lütfen internet bağlantını kontrol et.",
+        "Sipariş gönderilemedi. Lütfen internet bağlantını kontrol et."
       );
       console.error(error);
     } finally {
@@ -110,7 +116,7 @@ export default function OrderForm({
 
   const totalPrice = calculateTotalPrice(
     orderForm.ingredients,
-    orderForm.quantity,
+    orderForm.quantity
   ).toFixed(2);
 
   return (
@@ -145,9 +151,9 @@ export default function OrderForm({
               ))}
             </div>
 
-            {errors.size && (
-              <p className="mt-2 text-sm text-[#CE2829]">{errors.size}</p>
-            )}
+            <p className="mt-2 min-h-[20px] text-sm text-[#CE2829]">
+              {errors.size || ""}
+            </p>
           </fieldset>
 
           <div>
@@ -163,7 +169,7 @@ export default function OrderForm({
               name="dough"
               value={orderForm.dough}
               onChange={handleChange}
-              className="h-[45px] w-full rounded-md border border-[#D9D9D9] bg-[#FAF7F2] px-4 text-[16px] outline-none focus:border-[#CE2829]"
+              className="h-14 w-full rounded-md border border-[#D9D9D9] bg-[#FAF7F2] px-4 text-[18px] outline-none focus:border-[#CE2829]"
             >
               <option value="">--Hamur Kalınlığı Seç--</option>
               <option value="İnce Hamur">İnce Hamur</option>
@@ -218,11 +224,9 @@ export default function OrderForm({
             })}
           </div>
 
-          {errors.ingredients && (
-            <p className="mt-4 text-[16px] text-[#CE2829]">
-              {errors.ingredients}
-            </p>
-          )}
+          <p className="mt-4 min-h-[24px] text-[16px] text-[#CE2829]">
+            {errors.ingredients || ingredientError}
+          </p>
         </div>
 
         <div>
@@ -243,9 +247,9 @@ export default function OrderForm({
             className="w-full rounded-md bg-[#FAF7F2] px-4 py-3 outline-none"
           />
 
-          {errors.name && (
-            <p className="mt-2 text-sm text-[#CE2829]">{errors.name}</p>
-          )}
+          <p className="mt-2 min-h-[20px] text-sm text-[#CE2829]">
+            {errors.name || ""}
+          </p>
         </div>
 
         <div>
@@ -322,9 +326,9 @@ export default function OrderForm({
           </div>
         </div>
 
-        {submitError && (
-          <p className="text-sm font-medium text-[#CE2829]">{submitError}</p>
-        )}
+        <p className="min-h-[24px] text-sm font-medium text-[#CE2829]">
+          {submitError || ""}
+        </p>
       </div>
     </form>
   );
