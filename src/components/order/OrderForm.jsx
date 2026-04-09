@@ -14,7 +14,7 @@ export default function OrderForm({ orderForm, setOrderForm, setOrderResult }) {
   const errors = validateForm(orderForm);
   const isValid = Object.keys(errors).length === 0;
 
-  // Genel state güncelleme fonksiyonu (DRY)
+  // Genel state güncelleme fonksiyonu
   const updateForm = (field, value) => {
     setOrderForm((prev) => ({
       ...prev,
@@ -59,44 +59,12 @@ export default function OrderForm({ orderForm, setOrderForm, setOrderResult }) {
     }
   };
 
-  // const handleSubmit = async (event) => {
-  //   event.preventDefault();
-
-  //   if (isBusy || !isValid) return;
-
-  //   // Payload hazırlarken spread operatörü kullanıldı ve toplam eklendi
-  //   const payload = {
-  //     ...orderForm,
-  //     toplam: calculateTotalPrice(orderForm.ingredients, orderForm.quantity),
-  //   };
-
-  //   try {
-  //     setIsBusy(true);
-
-  //     const responseData = await postOrder(payload);
-
-  //     setOrderData(payload);
-  //     setOrderResponse(responseData);
-
-  //     toast.success("Siparişiniz alındı!", {
-  //       autoClose: 1200,
-  //       pauseOnHover: false,
-  //       onClose: () => navigate("/success"),
-  //     });
-  //   } catch (error) {
-  //     toast.error("Sipariş gönderilemedi. Lütfen bağlantını kontrol et.", {
-  //       autoClose: 1800,
-  //       pauseOnHover: false,
-  //       onClose: () => setIsBusy(false),
-  //     });
-  //   }
-  // };
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (isBusy || !isValid) return;
 
     // Tek bir payload objesi oluşturuyoruz
-   const payload = {
+    const payload = {
       isim: orderForm.name,
       boyut: orderForm.size,
       hamur: orderForm.dough,
@@ -110,10 +78,12 @@ export default function OrderForm({ orderForm, setOrderForm, setOrderResult }) {
       setIsBusy(true);
       const responseData = await postOrder(payload);
 
-      // Hem API cevabını hem de kendi hazırladığımız veriyi tek state'e gömüyoruz
+      // formdan gelen payloodu al, responsedan gelen veri ile birleştir
       setOrderResult({ ...payload, response: responseData });
-console.log("Sipariş özeti:", payload);
+
+      console.log("Sipariş özeti:", payload);
       console.log("API cevabı:", responseData);
+
       toast.success("Siparişiniz alındı!", {
         onClose: () => navigate("/success"),
       });
@@ -129,6 +99,7 @@ console.log("Sipariş özeti:", payload);
     5 *
     orderForm.quantity
   ).toFixed(2);
+
   const totalPrice = calculateTotalPrice(
     orderForm.ingredients,
     orderForm.quantity,

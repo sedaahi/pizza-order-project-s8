@@ -3,6 +3,8 @@ import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 
 export default function SuccessPage({ orderResult }) {
+  
+  //Sipariş verisi gelmezse hata ekranı göster
   if (!orderResult) {
     return (
       <div className="min-h-screen bg-[#CE2829] text-white">

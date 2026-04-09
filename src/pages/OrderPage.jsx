@@ -2,7 +2,6 @@ import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import OrderForm from "../components/order/OrderForm.jsx";
 import pizzaImage from "../../images/iteration-2-images/pictures/form-banner.png";
-import { useState } from "react";
 
 export default function OrderPage({ orderForm, setOrderForm, setOrderResult }) {
   return (

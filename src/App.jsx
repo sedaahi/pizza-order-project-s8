@@ -25,13 +25,13 @@ export default function App() {
             <OrderPage
               orderForm={orderForm}
               setOrderForm={setOrderForm}
-              setOrderResult={setOrderResult} // Burası setOrderResult olmalı
+              setOrderResult={setOrderResult}
             />
           }
         />
         <Route
           path="/success"
-          element={<SuccessPage orderResult={orderResult} />} // SuccessPage'e orderData olarak gönderiyoruz
+          element={<SuccessPage orderResult={orderResult} />}
         />
       </Routes>
 
