@@ -1,5 +1,5 @@
 import { useState } from "react";
-import Footer from "../components/Footer";
+import Footer from "../components/layout/Footer";
 
 import HeroSection from "../components/home/HeroSection";
 import HomeCategoryBar from "../components/home/HomeCategoryBar";

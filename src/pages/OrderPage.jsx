@@ -1,15 +1,10 @@
-import Header from "../components/Header";
-import Footer from "../components/Footer";
-import OrderForm from "../components/OrderForm";
+import Header from "../components/layout/Header";
+import Footer from "../components/layout/Footer";
+import OrderForm from "../components/order/OrderForm.jsx";
 import pizzaImage from "../../images/iteration-2-images/pictures/form-banner.png";
 import { useState } from "react";
 
-export default function OrderPage({
-  setOrderData,
-  setOrderResponse,
-  orderForm,
-  setOrderForm,
-}) {
+export default function OrderPage({ orderForm, setOrderForm, setOrderResult }) {
   return (
     <div className="min-h-screen bg-[#FAF7F2] text-[#292929]">
       <Header />
@@ -63,8 +58,7 @@ export default function OrderPage({
             <OrderForm
               orderForm={orderForm}
               setOrderForm={setOrderForm}
-              setOrderData={setOrderData}
-              setOrderResponse={setOrderResponse}
+              setOrderResult={setOrderResult}
             />
           </div>
         </section>

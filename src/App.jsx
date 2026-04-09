@@ -7,15 +7,16 @@ import HomePage from "./pages/HomePage";
 import OrderPage from "./pages/OrderPage";
 import SuccessPage from "./pages/SuccessPage";
 
-import {initialOrderForm} from "./data/ingredients";
+import { initialOrderForm } from "./data/ingredients";
+import ScrollToTop from "./utils/ScrollToTop";
 
 export default function App() {
-  const [orderData, setOrderData] = useState(null);
-  const [orderResponse, setOrderResponse] = useState(null);
   const [orderForm, setOrderForm] = useState(initialOrderForm);
+  const [orderResult, setOrderResult] = useState(null);
 
   return (
     <>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route
@@ -24,32 +25,17 @@ export default function App() {
             <OrderPage
               orderForm={orderForm}
               setOrderForm={setOrderForm}
-              setOrderData={setOrderData}
-              setOrderResponse={setOrderResponse}
+              setOrderResult={setOrderResult} // Burası setOrderResult olmalı
             />
           }
         />
         <Route
           path="/success"
-          element={
-            <SuccessPage
-              orderData={orderData}
-              orderResponse={orderResponse}
-            />
-          }
+          element={<SuccessPage orderResult={orderResult} />} // SuccessPage'e orderData olarak gönderiyoruz
         />
       </Routes>
 
-      <ToastContainer
-        position="top-center"
-        autoClose={1000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        pauseOnHover={false}
-        draggable={false}
-        theme="light"
-      />
+      <ToastContainer position="top-center" autoClose={1000} theme="light" />
     </>
   );
 }

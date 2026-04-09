@@ -1,4 +1,4 @@
-import logo from "../../images/iteration-1-images/logo.svg";
+import logo from "../../../images/iteration-1-images/logo.svg";
 
 export default function Header() {
   return (

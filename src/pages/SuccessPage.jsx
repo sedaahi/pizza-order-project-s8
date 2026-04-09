@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import Header from "../components/Header";
-import Footer from "../components/Footer";
+import Header from "../components/layout/Header";
+import Footer from "../components/layout/Footer";
 
-export default function SuccessPage({ orderData }) {
-  if (!orderData) {
+export default function SuccessPage({ orderResult }) {
+  if (!orderResult) {
     return (
       <div className="min-h-screen bg-[#CE2829] text-white">
         <Header />
@@ -62,30 +62,30 @@ export default function SuccessPage({ orderData }) {
           <div className="mt-8 w-full max-w-[230px] space-y-3 text-left text-[15px] leading-6 text-white">
             <p>
               <span className="font-normal">Boyut:</span>{" "}
-              <span className="font-semibold">{orderData.boyut}</span>
+              <span className="font-semibold">{orderResult.boyut}</span>
             </p>
             <p>
               <span className="font-normal">Adet:</span>{" "}
-              <span className="font-semibold">{orderData.adet}</span>
+              <span className="font-semibold">{orderResult.adet}</span>
             </p>
             <p>
               <span className="font-normal">Hamur:</span>{" "}
-              <span className="font-semibold">{orderData.hamur}</span>
+              <span className="font-semibold">{orderResult.hamur}</span>
             </p>
 
             <p>
               <span className="font-normal">Ek Malzemeler:</span>{" "}
-              <span className="font-semibold">{orderData.malzemeler && orderData.malzemeler.join(", ")}</span>
+              <span className="font-semibold">{orderResult.malzemeler && orderResult.malzemeler.join(", ")}</span>
             </p>
             <p>
               <span className="font-normal">Müşteri Adı:</span>{" "}
-              <span className="font-semibold">{orderData.isim}</span>
+              <span className="font-semibold">{orderResult.isim}</span>
             </p>
 
-            {orderData.ozel && orderData.ozel !== "" && (
+            {orderResult.ozel && orderResult.ozel !== "" && (
               <p>
                 <span className="font-normal">Sipariş Notu:</span>{" "}
-                <span className="font-semibold">{orderData.ozel}</span>
+                <span className="font-semibold">{orderResult.ozel}</span>
               </p>
             )}
           </div>
@@ -99,14 +99,14 @@ export default function SuccessPage({ orderData }) {
               <div className="flex items-center justify-between text-white">
                 <span>Seçimler</span>
                 <span>
-                  {(orderData.malzemeler.length * 5 * orderData.adet).toFixed(2)}
+                  {(orderResult.malzemeler.length * 5 * orderResult.adet).toFixed(2)}
                   ₺
                 </span>
               </div>
 
               <div className="flex items-center justify-between font-semibold text-white">
                 <span>Toplam</span>
-                <span>{Number(orderData.toplam).toFixed(2)}₺</span>
+                <span>{Number(orderResult.toplam).toFixed(2)}₺</span>
               </div>
             </div>
           </div>
