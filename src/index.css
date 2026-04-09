@@ -44,6 +44,23 @@
   }
 }
 
+/* Mobil cihazlarda select menüsünün garip konumlanmasını ve zoom yapmasını engeller */
+/* index.css veya App.css */
+select {
+  -webkit-appearance: none !important;
+  -moz-appearance: none !important;
+  appearance: none !important;
+  background-image: none !important;
+  text-indent: 0.01px;
+  text-overflow: '';
+  font-size: 16px !important; /* iOS zoom ve kaymayı %100 engellemek için */
+}
+
+/* IE için oku gizle */
+select::-ms-expand {
+  display: none;
+}
+
 /* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;

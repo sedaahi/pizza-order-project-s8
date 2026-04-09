@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { ingredientsList } from "../data/ingredients";
@@ -12,33 +12,36 @@ export default function OrderForm({
   setOrderResponse,
 }) {
   const navigate = useNavigate();
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isLocked, setIsLocked] = useState(false);
+
+  const [isBusy, setIsBusy] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [ingredientError, setIngredientError] = useState("");
 
-  const errors = useMemo(() => validateForm(orderForm), [orderForm]);
+  const errors = validateForm(orderForm);
   const isValid = Object.keys(errors).length === 0;
 
-  const handleChange = (event) => {
-    const { name, value } = event.target;
-
+  const updateForm = (field, value) => {
     setOrderForm((prev) => ({
       ...prev,
-      [name]: value,
+      [field]: value,
     }));
   };
 
+  const handleChange = (event) => {
+    const { name, value } = event.target;
+    updateForm(name, value);
+  };
+
   const handleIngredientChange = (ingredient) => {
-    if (isLocked) return;
+    if (isBusy) return;
 
     const isSelected = orderForm.ingredients.includes(ingredient);
 
     if (isSelected) {
-      setOrderForm((prev) => ({
-        ...prev,
-        ingredients: prev.ingredients.filter((item) => item !== ingredient),
-      }));
+      updateForm(
+        "ingredients",
+        orderForm.ingredients.filter((item) => item !== ingredient),
+      );
       setIngredientError("");
       return;
     }
@@ -48,39 +51,24 @@ export default function OrderForm({
       return;
     }
 
-    setOrderForm((prev) => ({
-      ...prev,
-      ingredients: [...prev.ingredients, ingredient],
-    }));
-
+    updateForm("ingredients", [...orderForm.ingredients, ingredient]);
     setIngredientError("");
   };
 
   const decreaseQuantity = () => {
-    if (isLocked || orderForm.quantity <= 1) return;
-
-    setOrderForm((prev) => ({
-      ...prev,
-      quantity: prev.quantity - 1,
-    }));
+    if (isBusy || orderForm.quantity <= 1) return;
+    updateForm("quantity", orderForm.quantity - 1);
   };
 
   const increaseQuantity = () => {
-    if (isLocked) return;
-
-    setOrderForm((prev) => ({
-      ...prev,
-      quantity: prev.quantity + 1,
-    }));
+    if (isBusy) return;
+    updateForm("quantity", orderForm.quantity + 1);
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
 
-    if (isSubmitting || isLocked) return;
-
-    const currentErrors = validateForm(orderForm);
-    if (Object.keys(currentErrors).length > 0) return;
+    if (isBusy || !isValid) return;
 
     const payload = {
       isim: orderForm.name,
@@ -93,8 +81,7 @@ export default function OrderForm({
     };
 
     try {
-      setIsSubmitting(true);
-      setIsLocked(true);
+      setIsBusy(true);
       setSubmitError("");
 
       const responseData = await postOrder(payload);
@@ -105,8 +92,6 @@ export default function OrderForm({
       setOrderData(payload);
       setOrderResponse(responseData);
 
-      setIsSubmitting(false);
-
       toast.success("Siparişiniz alındı!", {
         autoClose: 1200,
         pauseOnHover: false,
@@ -115,19 +100,18 @@ export default function OrderForm({
       });
     } catch (error) {
       setSubmitError(
-        "Sipariş gönderilemedi. Lütfen internet bağlantını kontrol et."
+        "Sipariş gönderilemedi. Lütfen internet bağlantını kontrol et.",
       );
-
-      setIsSubmitting(false);
 
       toast.error("Sipariş gönderilemedi.", {
         autoClose: 1800,
         pauseOnHover: false,
         closeOnClick: true,
-        onClose: () => setIsLocked(false),
+        onClose: () => setIsBusy(false),
       });
 
       console.error(error);
+      return;
     }
   };
 
@@ -139,29 +123,27 @@ export default function OrderForm({
 
   const totalPrice = calculateTotalPrice(
     orderForm.ingredients,
-    orderForm.quantity
+    orderForm.quantity,
   ).toFixed(2);
 
-  const isButtonDisabled = !isValid || isSubmitting || isLocked;
+  const isButtonDisabled = !isValid || isBusy;
+  const disabledClass = isBusy ? "pointer-events-none opacity-70" : "";
 
   return (
     <form className="w-full" onSubmit={handleSubmit}>
-      <div className="grid gap-8">
-        <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-6 md:gap-8">
+        <div className="grid grid-cols-2 gap-4 md:gap-6">
           <fieldset>
-            <legend className="mb-3 text-[20px] font-semibold text-[#292929]">
+            <legend className="mb-2 text-[22px] font-semibold text-[#292929] md:mb-3 md:text-[20px]">
               Boyut Seç <span className="text-[#CE2829]">*</span>
             </legend>
 
-            <div className="flex gap-3">
+            {/* Mobilde dikey (col), Webde yatay (row) dizilim */}
+            <div className="flex flex-col gap-4 md:flex-row md:gap-3">
               {["S", "M", "L"].map((size) => (
                 <label
                   key={size}
-                  className={`flex h-14 w-14 cursor-pointer items-center justify-center rounded-full border text-[18px] font-semibold ${
-                    orderForm.size === size
-                      ? "border-[#FDC913] bg-[#FDC913]"
-                      : "border-[#E5E5E5] bg-[#FAF7F2]"
-                  } ${isLocked ? "pointer-events-none opacity-70" : ""}`}
+                  className={`flex cursor-pointer items-center gap-3 md:justify-center ${disabledClass}`}
                 >
                   <input
                     type="radio"
@@ -170,14 +152,29 @@ export default function OrderForm({
                     checked={orderForm.size === size}
                     onChange={handleChange}
                     className="hidden"
-                    disabled={isLocked}
+                    disabled={isBusy}
                   />
-                  {size}
+                  <div
+                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border text-[10px] font-medium transition-all
+            md:h-14 md:w-14 md:text-[18px] md:font-semibold 
+            ${
+              orderForm.size === size
+                ? "border-[#FDC913] bg-[#FDC913]"
+                : "border-[#E5E5E5] bg-[#FAF7F2]"
+            }`}
+                  >
+                    {size}
+                  </div>
+
+                  {/* Mobilde yanına açıklama (Web'de gizli) */}
+                  <span className="text-[16px] font-medium text-[#5F5F5F] md:hidden">
+                    {size === "S" ? "Küçük" : size === "M" ? "Orta" : "Büyük"}
+                  </span>
                 </label>
               ))}
             </div>
 
-            <p className="mt-2 min-h-[20px] text-sm text-[#CE2829]">
+            <p className="mt-2 min-h-[16px] text-[10px] text-[#CE2829] md:min-h-[20px] md:text-sm">
               {errors.size || ""}
             </p>
           </fieldset>
@@ -185,7 +182,7 @@ export default function OrderForm({
           <div>
             <label
               htmlFor="dough"
-              className="mb-3 block text-[20px] font-semibold text-[#292929]"
+              className="mb-2 block font-semibold text-[#292929] md:mb-3 text-[22px] md:text-[20px]"
             >
               Hamur Seç <span className="text-[#CE2829]">*</span>
             </label>
@@ -195,51 +192,49 @@ export default function OrderForm({
               name="dough"
               value={orderForm.dough}
               onChange={handleChange}
-              disabled={isLocked}
-              className="h-14 w-full rounded-md border border-[#D9D9D9] bg-[#FAF7F2] px-4 text-[18px] outline-none focus:border-[#CE2829] disabled:cursor-not-allowed disabled:opacity-70"
+              disabled={isBusy}
+              className="h-10 w-full rounded-[4px] border border-[#D9D9D9] bg-[#FAF7F2] px-3 text-[14px] outline-none focus:border-[#CE2829] md:h-14 md:rounded-md md:px-4 md:text-[18px]"
             >
-              <option value="">--Hamur Kalınlığı Seç--</option>
+              <option value="">Hamur Kalınlığı</option>
               <option value="İnce Hamur">İnce Hamur</option>
               <option value="Orta Hamur">Orta Hamur</option>
               <option value="Kalın Hamur">Kalın Hamur</option>
             </select>
 
-            <p className="mt-2 min-h-[20px] text-sm text-[#CE2829]">
+            <p className="mt-2 min-h-[16px] text-[10px] text-[#CE2829] md:min-h-[20px] md:text-sm">
               {errors.dough || ""}
             </p>
           </div>
         </div>
 
         <div>
-          <h2 className="text-[20px] font-semibold text-[#292929]">
+          <h2 className="text-[22px] font-semibold text-[#292929] md:text-[20px]">
             Ek Malzemeler
           </h2>
 
-          <p className="mt-2 text-[16px] text-[#5F5F5F]">
+          <p className="mt-2 mb-6 text-[20px] text-[#5F5F5F] md:text-[16px]">
             En Fazla 10 malzeme seçebilirsiniz. 5₺
           </p>
 
-          <div className="mt-6 grid grid-cols-3 gap-x-8 gap-y-4">
+          <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 md:mt-6 md:grid-cols-3 md:gap-x-8 md:gap-y-4">
             {ingredientsList.map((ingredient) => {
               const checked = orderForm.ingredients.includes(ingredient);
 
               return (
                 <label
                   key={ingredient}
-                  className={`flex min-h-[45px] cursor-pointer items-center gap-3 text-[16px] font-semibold text-[#5F5F5F] ${
-                    isLocked ? "pointer-events-none opacity-70" : ""
-                  }`}
+                  className={`flex min-h-[16px] cursor-pointer items-center gap-2 text-[10px] font-medium text-[#5F5F5F] md:min-h-[45px] md:gap-3 md:text-[16px] md:font-semibold ${disabledClass}`}
                 >
                   <input
                     type="checkbox"
                     checked={checked}
                     onChange={() => handleIngredientChange(ingredient)}
                     className="hidden"
-                    disabled={isLocked}
+                    disabled={isBusy}
                   />
 
                   <span
-                    className={`flex h-[45px] w-[45px] shrink-0 items-center justify-center rounded-[4px] border text-[22px] font-bold ${
+                    className={`flex h-4 w-4 shrink-0 items-center justify-center rounded-[4px] border text-[12px] font-bold md:h-[45px] md:w-[45px] md:rounded-[4px] md:text-[22px] ${
                       checked
                         ? "border-[#FDC913] bg-[#FDC913]"
                         : "border-[#E5E5E5] bg-[#FAF7F2]"
@@ -248,13 +243,15 @@ export default function OrderForm({
                     {checked ? "✓" : ""}
                   </span>
 
-                  <span className="w-[140px] leading-[1.2]">{ingredient}</span>
+                  <span className="text-[14px] leading-tight font-medium md:text-[16px] md:font-semibold md:w-[140px]">
+                    {ingredient}
+                  </span>
                 </label>
               );
             })}
           </div>
 
-          <p className="mt-4 min-h-[24px] text-[16px] text-[#CE2829]">
+          <p className="mt-3 min-h-[16px] text-[10px] text-[#CE2829] md:mt-4 md:min-h-[24px] md:text-[16px]">
             {errors.ingredients || ingredientError}
           </p>
         </div>
@@ -262,7 +259,7 @@ export default function OrderForm({
         <div>
           <label
             htmlFor="name"
-            className="mb-2 block text-[20px] font-semibold text-[#292929]"
+            className="mb-2 block text-[22px] font-semibold text-[#292929] md:text-[20px]"
           >
             İsim
           </label>
@@ -274,11 +271,28 @@ export default function OrderForm({
             value={orderForm.name}
             onChange={handleChange}
             placeholder="Adınızı girin"
-            disabled={isLocked}
-            className="w-full rounded-md bg-[#FAF7F2] px-4 py-3 outline-none disabled:cursor-not-allowed disabled:opacity-70"
+            disabled={isBusy}
+            className="w-full text-[18px] placeholder:text-[16px] placeholder:text-[#5F5F5F] outline-none disabled:cursor-not-allowed disabled:opacity-70 
+    
+    {/* --- MOBİL STİLLERİ (Varsayılan) --- */}
+    h-[69px] 
+    bg-white
+    border border-[#D9D9D9]
+    rounded-[7px]
+    px-3
+    
+    {/* --- WEB/MASAÜSTÜ STİLLERİ (md: ve sonrası) --- */}
+    md:h-[56px]
+    md:bg-[#FAF7F2]
+    md:border-none
+    md:rounded-[4px]
+    md:px-4
+    md:py-[16px]
+    md:text-[16px]
+    md:placeholder:text-[16px]"
           />
 
-          <p className="mt-2 min-h-[20px] text-sm text-[#CE2829]">
+          <p className="mt-2 min-h-[16px] text-[10px] text-[#CE2829] md:min-h-[20px] md:text-sm">
             {errors.name || ""}
           </p>
         </div>
@@ -286,7 +300,7 @@ export default function OrderForm({
         <div>
           <label
             htmlFor="note"
-            className="mb-2 block text-[20px] font-semibold text-[#292929]"
+            className="mb-2 block text-[22px] font-semibold text-[#292929] md:text-[20px]"
           >
             Sipariş Notu
           </label>
@@ -297,70 +311,109 @@ export default function OrderForm({
             value={orderForm.note}
             onChange={handleChange}
             placeholder="Siparişine eklemek istediğin bir not var mı?"
-            disabled={isLocked}
-            className="h-[56px] w-full rounded-[4px] bg-[#FAF7F2] px-4 py-[16px] text-[16px] font-light text-[#292929] outline-none placeholder:text-[16px] placeholder:text-[#5F5F5F] disabled:cursor-not-allowed disabled:opacity-70"
+            disabled={isBusy}
+            className="w-full text-[18px] placeholder:text-[16px] placeholder:text-[#5F5F5F] outline-none disabled:cursor-not-allowed disabled:opacity-70 
+    
+    {/* --- MOBİL STİLLERİ (Varsayılan) --- */}
+    h-[69px] 
+    bg-white
+    border border-[#D9D9D9]
+    rounded-[7px]
+    px-3
+    
+    {/* --- WEB/MASAÜSTÜ STİLLERİ (md: ve sonrası) --- */}
+    md:h-[56px]
+    md:bg-[#FAF7F2]
+    md:border-none
+    md:rounded-[4px]
+    md:px-4
+    md:py-[16px]
+    md:text-[16px]
+    md:placeholder:text-[16px]"
           />
         </div>
 
-        <div className="flex flex-col gap-6 border-t border-[#D9D9D9] pt-6 md:flex-row md:items-start md:justify-between">
-          <div className="flex w-fit overflow-hidden rounded-md border border-[#D9D9D9]">
-            <button
-              type="button"
-              onClick={decreaseQuantity}
-              disabled={isLocked}
-              className="bg-[#FDC913] px-5 py-3 text-lg font-semibold disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              -
-            </button>
-
-            <span className="flex min-w-[56px] items-center justify-center bg-white px-4 py-3">
-              {orderForm.quantity}
-            </span>
-
-            <button
-              type="button"
-              onClick={increaseQuantity}
-              disabled={isLocked}
-              className="bg-[#FDC913] px-5 py-3 text-lg font-semibold disabled:cursor-not-allowed disabled:opacity-70"
-            >
-              +
-            </button>
-          </div>
-
-          <div className="w-full max-w-[300px] overflow-hidden rounded-[6px] border border-[#D9D9D9] bg-white">
-            <div className="px-6 pb-6 pt-8">
-              <h3 className="text-[24px] font-semibold text-[#292929]">
+        <div className="flex flex-col border-t border-[#D9D9D9] pt-4 md:flex-row md:items-start md:justify-between md:gap-6 md:pt-6">
+          {/* 1. ÜST KISIM: Sipariş Toplamı Kutusu (Mobilde en üstte, Web'de sağda) */}
+          <div className="order-1 w-full overflow-hidden rounded-[5px] border border-[#D9D9D9] bg-white md:order-2 md:max-w-[300px] md:rounded-[6px]">
+            {/* Mobilde px-8 ve py-6 yaparak içeriği merkeze yaklaştırdık */}
+            <div className="px-12 py-6 md:px-6 md:pb-6 md:pt-8">
+              <h3 className="text-[16px] font-semibold text-[#292929] md:text-[24px]">
                 Sipariş Toplamı
               </h3>
 
-              <div className="mt-8 space-y-4 text-[18px]">
+              {/* mt-4 ve space-y-2 ile mobilde daha geniş bir alan bıraktık */}
+              <div className="mt-4 space-y-2 text-[14px] md:mt-8 md:space-y-4 md:text-[18px]">
                 <div className="flex items-center justify-between text-[#5F5F5F]">
                   <span>Seçimler</span>
-                  <span>{selectionsPrice}₺</span>
+                  <span className="font-medium">{selectionsPrice}₺</span>
                 </div>
 
                 <div className="flex items-center justify-between font-semibold text-[#CE2829]">
                   <span>Toplam</span>
-                  <span>{totalPrice}₺</span>
+                  <span className="text-[16px] md:text-[18px]">
+                    {totalPrice}₺
+                  </span>
                 </div>
               </div>
             </div>
 
+            {/* Web'de kutunun içindeki buton */}
             <button
               type="submit"
               disabled={isButtonDisabled}
-              className={`block h-[62px] w-full text-[18px] font-semibold text-[#292929] ${
+              className={`hidden md:block h-[62px] w-full text-[18px] font-semibold text-[#292929] ${
                 isButtonDisabled
                   ? "cursor-not-allowed bg-[#F3E7A0]"
                   : "bg-[#FDC913]"
               }`}
             >
-              {isSubmitting || isLocked ? "Gönderiliyor..." : "SİPARİŞ VER"}
+              {isBusy ? "Gönderiliyor..." : "SİPARİŞ VER"}
+            </button>
+          </div>
+
+          {/* 2. ALT KISIM: Adet ve Sipariş Ver Butonu (Mobilde yan yana) */}
+          <div className="order-2 mt-4 flex items-center gap-3 w-full md:order-1 md:mt-0 md:w-fit">
+            {/* Adet Seçici - flex-1 ekleyerek alanın yarısını almasını sağladık */}
+            <div className="flex h-[45px] flex-1 overflow-hidden rounded-[4px] border border-[#D9D9D9] md:h-auto md:w-fit md:flex-none md:rounded-[3px]">
+              <button
+                type="button"
+                onClick={decreaseQuantity}
+                disabled={isBusy}
+                className="flex-1 bg-[#FDC913] text-[18px] font-semibold md:px-5 md:py-3"
+              >
+                -
+              </button>
+
+              {/* min-w-0 ve flex-1 ile ortadaki rakam alanının da esnek olmasını sağladık */}
+              <span className="flex flex-1 min-w-0 items-center justify-center bg-white text-[16px] font-semibold md:min-w-[56px] md:text-base">
+                {orderForm.quantity}
+              </span>
+
+              <button
+                type="button"
+                onClick={increaseQuantity}
+                disabled={isBusy}
+                className="flex-1 bg-[#FDC913] text-[18px] font-semibold md:px-5 md:py-3"
+              >
+                +
+              </button>
+            </div>
+
+            {/* Sipariş Ver Butonu - flex-1 zaten vardı, şimdi diğeriyle tam eşit paylaşıyor */}
+            <button
+              type="submit"
+              disabled={isButtonDisabled}
+              className={`md:hidden flex-1 h-[45px] rounded-[4px] text-[14px] font-bold text-[#292929] transition-colors ${
+                isButtonDisabled ? "bg-[#F3E7A0]" : "bg-[#FDC913]"
+              }`}
+            >
+              {isBusy ? "GÖNDERİLİYOR..." : "SİPARİŞ VER"}
             </button>
           </div>
         </div>
 
-        <p className="min-h-[24px] text-sm font-medium text-[#CE2829]">
+        <p className="min-h-[16px] text-[10px] font-medium text-[#CE2829] md:min-h-[24px] md:text-sm">
           {submitError || ""}
         </p>
       </div>
