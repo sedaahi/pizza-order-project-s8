@@ -231,6 +231,7 @@ export default function OrderForm({
                     onChange={() => handleIngredientChange(ingredient)}
                     className="hidden"
                     disabled={isBusy}
+                    data-cy="ingredient-checkbox"
                   />
 
                   <span
@@ -272,6 +273,7 @@ export default function OrderForm({
             onChange={handleChange}
             placeholder="Adınızı girin"
             disabled={isBusy}
+            data-cy="name-input"
             className="w-full text-[18px] placeholder:text-[16px] placeholder:text-[#5F5F5F] outline-none disabled:cursor-not-allowed disabled:opacity-70 
     
     {/* --- MOBİL STİLLERİ (Varsayılan) --- */}
@@ -361,6 +363,7 @@ export default function OrderForm({
             {/* Web'de kutunun içindeki buton */}
             <button
               type="submit"
+              data-cy="submit-button"
               disabled={isButtonDisabled}
               className={`hidden md:block h-[62px] w-full text-[18px] font-semibold text-[#292929] ${
                 isButtonDisabled
@@ -403,6 +406,7 @@ export default function OrderForm({
             {/* Sipariş Ver Butonu - flex-1 zaten vardı, şimdi diğeriyle tam eşit paylaşıyor */}
             <button
               type="submit"
+              data-cy="submit-button"
               disabled={isButtonDisabled}
               className={`md:hidden flex-1 h-[45px] rounded-[4px] text-[14px] font-bold text-[#292929] transition-colors ${
                 isButtonDisabled ? "bg-[#F3E7A0]" : "bg-[#FDC913]"

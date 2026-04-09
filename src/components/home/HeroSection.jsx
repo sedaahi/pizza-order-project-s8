@@ -45,6 +45,7 @@ export default function HeroSection() {
 
         <Link
           to="/order"
+          data-cy="hero-order-button"
           className="mt-8 inline-flex h-[66px] min-w-[198px] items-center justify-center rounded-full bg-[#FDC913] px-10 font-['Barlow'] text-[22px] font-semibold text-[#292929] md:mt-6 md:h-[56px] md:min-w-[193px] md:px-8 md:text-[18px]"
         >
           ACIKTIM
